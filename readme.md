@@ -1,6 +1,9 @@
 I'm traveling from AMS to CPT on my motorbike and for that I need navigation. Not satisfied with the alternatives, I decided to create a basic navigation app.
 
-It will:
+Done
+- Create basic app with map / download capabilities
+
+Todo
 - Load a route from a GPX file
 - Based on some parameters, create a boundary around that line and download everything within as an offline map
 
