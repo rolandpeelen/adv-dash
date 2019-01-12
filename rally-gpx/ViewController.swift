@@ -81,44 +81,48 @@ class ViewController: UIViewController, MGLMapViewDelegate {
     }
     
     // MARK: - MGLOfflinePack notification handlers
-    
     @objc func offlinePackProgressDidChange(notification: NSNotification) {
-        // Get the offline pack this notification is regarding,
-        // and the associated user info for the pack; in this case, `name = My Offline Pack`
-        if let pack = notification.object as? MGLOfflinePack {
-            let progress = pack.progress
-            // or notification.userInfo![MGLOfflinePackProgressUserInfoKey]!.MGLOfflinePackProgressValue
-            let completedResources = progress.countOfResourcesCompleted
-            let expectedResources = progress.countOfResourcesExpected
-            
-            // Calculate current progress percentage.
-            let progressPercentage = Float(completedResources) / Float(expectedResources)
-            
-            // Setup the progress bar.
-            if progressView == nil {
-                progressView = UIProgressView(progressViewStyle: .default)
-                let frame = view.bounds.size
-                progressView.frame = CGRect(x: frame.width / 4, y: frame.height * 0.75, width: frame.width / 2, height: 10)
-                view.addSubview(progressView)
-            }
-            
-            progressView.progress = progressPercentage
-            
-            // If this pack has finished, print its size and resource count.
-            if completedResources == expectedResources {
-                let byteCount = ByteCountFormatter.string(fromByteCount: Int64(pack.progress.countOfBytesCompleted), countStyle: ByteCountFormatter.CountStyle.memory)
-                progressView.removeFromSuperview()
-                print("Offline pack completed: \(byteCount), \(completedResources) resources")
-            } else {
-                // Otherwise, print download/verification progress.
-                print("Offline pack has \(completedResources) of \(expectedResources) resources — \(progressPercentage * 100)%.")
-            }
+        
+        let download = notification.object as? MGLOfflinePack;
+        if (download == nil) {return};
+        
+        let progress = download!.progress // as we check if pack is nil, we can now safely assume we have it here.
+        let completed = progress.countOfResourcesCompleted
+        let total = progress.countOfResourcesExpected
+        let progressPercentile = Float(completed) / Float(total)
+        
+        // Setup the progress bar.
+        if (progressView == nil) {
+            let progressView = createProgressView(view: view);
+            view.addSubview(progressView)
         }
+        progressView.progress = progressPercentile
+        
+        // If this pack has finished, print its size and resource count.
+        if (completed == total) {
+            let byteCount = ByteCountFormatter.string(
+                fromByteCount: Int64(download!.progress.countOfBytesCompleted),
+                countStyle: ByteCountFormatter.CountStyle.memory)
+            
+            progressView.removeFromSuperview()
+            return downloadCompleted(byteCount: byteCount, completed: completed);
+        }
+        
+        downloadProgress(completed: completed, total: total, percentile: progressPercentile);
     }
+    
+    func createProgressView(view: UIView) -> UIView {
+        progressView = UIProgressView(progressViewStyle: .default)
+        let frame = view.bounds.size
+        progressView.frame = CGRect(x: frame.width / 4, y: frame.height * 0.75, width: frame.width / 2, height: 10)
+        return progressView;
+    }
+    func downloadCompleted(byteCount: String, completed: UInt64) { print("Offline pack completed: \(byteCount), \(completed) resources") };
+    func downloadProgress(completed: UInt64, total: UInt64, percentile: Float) { print("Offline pack has \(completed) of \(total) resources — \(progressPercentile * 100)%.") };
+    
     
     @objc func offlinePackDidReceiveError(notification: NSNotification) {
         print("Some offline shit received an error")
-        
 //        if let pack = notification.object as? MGLOfflinePack,
 //            let userInfo = NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(pack.context) as? [String: String],
 //            let error = notification.userInfo?[MGLOfflinePackUserInfoKey.error] as? NSError {
