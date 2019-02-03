@@ -2,10 +2,15 @@ I'm traveling from AMS to CPT on my motorbike and for that I need navigation. No
 
 Done
 - Create basic app with map / download capabilities
+- Load GPX from file
 
 Todo
-- Load a route from a GPX file
-- Based on some parameters, create a boundary around that line and download everything within as an offline map
+- Based on some parameters, create a boundary around that line and download everything within as an offline map -- IE. implement http://188.166.7.120:5000/ algorithm to draw the bounding boxes
+- Connect to AWS bucket to select GPX file
+
+Todo Back-end
+- Create tiny back-end with user management
+- Have back-end be able to upload GPX files
 
 To use:
 - Clone
