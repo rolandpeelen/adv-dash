@@ -15,6 +15,8 @@
 		2ACEA61F21EA1CB7005BD7CD /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ACEA61E21EA1CB7005BD7CD /* LocationService.swift */; };
 		2ACEA62121EB7664005BD7CD /* GpxService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ACEA62021EB7664005BD7CD /* GpxService.swift */; };
 		2ACEA62721EBE1AE005BD7CD /* test.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 2ACEA62621EBE1AE005BD7CD /* test.gpx */; };
+		3A7DEF52220DE00100A0E089 /* HelperService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A7DEF51220DE00100A0E089 /* HelperService.swift */; };
+		3AB620A12211D3BA00116077 /* prod.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 3AB620A02211D3B900116077 /* prod.gpx */; };
 		C6E0A32BD9187A8BB5A0872E /* Pods_rally_gpx.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6A4972E1395D65FCEA086A8 /* Pods_rally_gpx.framework */; };
 /* End PBXBuildFile section */
 
@@ -30,6 +32,8 @@
 		2ACEA62021EB7664005BD7CD /* GpxService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GpxService.swift; sourceTree = "<group>"; };
 		2ACEA62621EBE1AE005BD7CD /* test.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = test.gpx; sourceTree = "<group>"; };
 		2B99B1D6B239D756FBDC82FB /* Pods-rally-gpx.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-rally-gpx.debug.xcconfig"; path = "Pods/Target Support Files/Pods-rally-gpx/Pods-rally-gpx.debug.xcconfig"; sourceTree = "<group>"; };
+		3A7DEF51220DE00100A0E089 /* HelperService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperService.swift; sourceTree = "<group>"; };
+		3AB620A02211D3B900116077 /* prod.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = prod.gpx; sourceTree = "<group>"; };
 		D568D9CC8701B8447A7B4045 /* Pods-rally-gpx.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-rally-gpx.release.xcconfig"; path = "Pods/Target Support Files/Pods-rally-gpx/Pods-rally-gpx.release.xcconfig"; sourceTree = "<group>"; };
 		F6A4972E1395D65FCEA086A8 /* Pods_rally_gpx.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_rally_gpx.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -68,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				2ACEA62621EBE1AE005BD7CD /* test.gpx */,
+				3AB620A02211D3B900116077 /* prod.gpx */,
 				2AB346F421D8F85400F9A9CC /* AppDelegate.swift */,
 				2ACEA61D21EA1CA2005BD7CD /* Services */,
 				2AB346F621D8F85400F9A9CC /* ViewController.swift */,
@@ -84,6 +89,7 @@
 			children = (
 				2ACEA61E21EA1CB7005BD7CD /* LocationService.swift */,
 				2ACEA62021EB7664005BD7CD /* GpxService.swift */,
+				3A7DEF51220DE00100A0E089 /* HelperService.swift */,
 			);
 			name = Services;
 			path = "New Group";
@@ -168,6 +174,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2AB346FF21D8F85400F9A9CC /* LaunchScreen.storyboard in Resources */,
+				3AB620A12211D3BA00116077 /* prod.gpx in Resources */,
 				2ACEA62721EBE1AE005BD7CD /* test.gpx in Resources */,
 				2AB346FC21D8F85400F9A9CC /* Assets.xcassets in Resources */,
 				2AB346FA21D8F85400F9A9CC /* Main.storyboard in Resources */,
@@ -238,6 +245,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2AB346F721D8F85400F9A9CC /* ViewController.swift in Sources */,
+				3A7DEF52220DE00100A0E089 /* HelperService.swift in Sources */,
 				2ACEA61F21EA1CB7005BD7CD /* LocationService.swift in Sources */,
 				2AB346F521D8F85400F9A9CC /* AppDelegate.swift in Sources */,
 				2ACEA62121EB7664005BD7CD /* GpxService.swift in Sources */,

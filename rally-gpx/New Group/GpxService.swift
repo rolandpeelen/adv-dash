@@ -20,12 +20,12 @@ class GpxService: NSObject, XMLParserDelegate {
     }()
     
     override init() {
-        super.init()
+        super.init();
         loadFile();
     }
     
     func loadFile() {
-        let gpxPath = Bundle.main.path(forResource: "test", ofType: "gpx")
+        let gpxPath = Bundle.main.path(forResource: "prod", ofType: "gpx")
         let gpxData = NSData(contentsOfFile: gpxPath ?? "")
         let parser = XMLParser(data: gpxData! as Data);
         parser.delegate = self;
