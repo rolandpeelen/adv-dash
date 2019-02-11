@@ -20,7 +20,7 @@ class GpxService: NSObject, XMLParserDelegate {
     }()
     
     override init() {
-        super.init()
+        super.init();
         loadFile();
     }
     
