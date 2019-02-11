@@ -32,22 +32,25 @@ class HelperService: NSObject {
                                      nextIndex: Int,
                                      array: Array<CLLocationCoordinate2D>,
                                      MINIMAL_DISTANCE: Double) -> Int {
+        if(baseIndex == 0) {return 1};
         if(nextIndex >= array.count) {return array.count - 1};
         let distanceAB = distance(from: array[baseIndex], to: array[nextIndex]);
         return distanceAB >= MINIMAL_DISTANCE ? nextIndex : getFirstNewDistanceInMeters(baseIndex: baseIndex, nextIndex: 1 + nextIndex, array: array, MINIMAL_DISTANCE: MINIMAL_DISTANCE);
     }
     
-    
     /*
      Create a boundingbox with minimum offsets around a CLLocationCoordinate, but done properly with earth
      latitude and longitude in mind
      */
-    func createBoundingBox(coordinate: CLLocationCoordinate2D, offset: Double) -> (CLLocationCoordinate2D, CLLocationCoordinate2D) {
+    func createBoundingBoxAllCoordinates(coordinate: CLLocationCoordinate2D, offset: Double) -> (CLLocationCoordinate2D, CLLocationCoordinate2D, CLLocationCoordinate2D, CLLocationCoordinate2D) {
         let differenceLat = (offset / EARTH_RADIUS) * 180 / Double.pi;
         let differenceLong = (offset / (EARTH_RADIUS * cos(Double.pi * coordinate.latitude / 180))) * 180 / Double.pi;
-        let SW = CLLocationCoordinate2DMake(coordinate.latitude - differenceLat, coordinate.longitude - differenceLong)
+        let NW = CLLocationCoordinate2DMake(coordinate.latitude - differenceLat, coordinate.longitude + differenceLong)
         let NE = CLLocationCoordinate2DMake(coordinate.latitude + differenceLat, coordinate.longitude + differenceLong)
-        return (SW, NE);
+        let SW = CLLocationCoordinate2DMake(coordinate.latitude - differenceLat, coordinate.longitude - differenceLong)
+        let SE = CLLocationCoordinate2DMake(coordinate.latitude + differenceLat, coordinate.longitude - differenceLong)
+        return (NW, NE, SW, SE)
     }
+
     
 }

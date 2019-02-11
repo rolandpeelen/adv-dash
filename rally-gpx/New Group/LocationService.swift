@@ -12,29 +12,40 @@ import Mapbox
 import CoreLocation
 
 class LocationService: NSObject, MGLMapViewDelegate {
-    // Options
-    // This is used for the offline maps sizing, the minimal distance directly correlates to the surface area of the downloads in: SURFACE_AREA = MINIMAL_DISTANCE ^ 2 / 2;
+    /*
+     OPTIONS
+     This is used for the offline maps sizing, the minimal distance directly correlates to the surface area of the downloads in: SURFACE_AREA = MINIMAL_DISTANCE ^ 2 / 2;
+     */
+    let KEEP_TRACK_OF_LOCATION:Bool = false;
+    let VISUAL_DEBUGGING:Bool = true;
+    let OFFLINE_MODE:Bool = true;
     let MINIMAL_DISTANCE:Double = 5000;
-    let DOWNLOAD_OFFSET: Double = 7500; // minimal distance divided by two + overlap in meters
+    let DOWNLOAD_OFFSET: Double = 5000;
     
+    /*
+     PUBLIC
+    */
     public var initialized: Bool?;
     public var superView: UIView!;
     public var mapView: MGLMapView!
-    private var progressView: UIProgressView!
-    private var lastLocation: MGLUserLocation?;
-    private var gpxService: GpxService!;
-    private var helperService: HelperService!;
     static let sharedInstance: LocationService = {
         let instance = LocationService();
         return instance
     }()
+    
+    /*
+     PRIVATE
+     */
+    private var progressView: UIProgressView!
+    private var lastLocation: MGLUserLocation?;
+    private var gpxService: GpxService!;
+    private var helperService: HelperService!;
+    
         
     override init() {
         super.init();
         
         helperService = HelperService();
-        
-        // Setup offline pack notification handlers.
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(offlinePackProgressDidChange),
                                                name: NSNotification.Name.MGLOfflinePackProgressChanged, object: nil)
@@ -71,120 +82,79 @@ class LocationService: NSObject, MGLMapViewDelegate {
     
     
     func addTrack (notification:Notification) {
-        let track = notification.userInfo!["track"] as! Array<CLLocationCoordinate2D>; // Fetch the track from the notification
+        let track = notification.userInfo!["track"] as! Array<CLLocationCoordinate2D>;
         
-        let polyLine = MGLPolyline(coordinates: track, count: UInt(track.count)) // Create a polyline from the points
-        self.mapView.addAnnotation(polyLine) // Add the polyline to the view
+        let polyLine = MGLPolyline(coordinates: track, count: UInt(track.count))
+        self.mapView.addAnnotation(polyLine)
         
-        var boundingBoxes: Array<(CLLocationCoordinate2D, CLLocationCoordinate2D)> = [helperService.createBoundingBox(coordinate: track[0], offset: DOWNLOAD_OFFSET)];
-        
-//        startOfflinePackDownload(bounds: boundingBoxes[0], resolution: "HIRES", title: String(0));
-        
-        var points: Array<CLLocationCoordinate2D> = [track[0]]; // Start by adding the first point to the actual points
         var index:Int = 0;
-        
+        var offlineBoxes: Array<(Int, CLLocationCoordinate2D, CLLocationCoordinate2D)> = [];
         while(index < (track.count - 1)) {
             index = helperService.getFirstNewDistanceInMeters(baseIndex: index,
                                                               nextIndex: index + 1,
                                                               array: track,
                                                               MINIMAL_DISTANCE: MINIMAL_DISTANCE);
-            points.append(track[index])
-            
-            let annotation = MGLPointAnnotation()
-            annotation.coordinate = CLLocationCoordinate2D(latitude: track[index].latitude, longitude: track[index].longitude)
-            annotation.title = "\(index) MIDDLE"
-            mapView.addAnnotation(annotation)
-            
-            let box = helperService.createBoundingBox(coordinate: track[index], offset: DOWNLOAD_OFFSET)
-            boundingBoxes.append(box)
-//            startOfflinePackDownload(bounds: box, resolution: "HIRES", title: String(index));
+            let (SW, NE, SE, NW) = helperService.createBoundingBoxAllCoordinates(coordinate: track[index], offset: DOWNLOAD_OFFSET)
+
+            if(OFFLINE_MODE) { offlineBoxes.append((index, SW, NE));}
+            if(VISUAL_DEBUGGING){ self.mapView.addAnnotation(MGLPolyline(coordinates: [NW, NE, SW, SE, NW], count: 5)) }
         }
-        
-        self.addBoundingBoxPolyLine(view: mapView!, boundingBoxes: boundingBoxes)
-    }
-    
-    private func addBoundingBoxPolyLine(view: MGLMapView,
-        boundingBoxes: Array<(CLLocationCoordinate2D, CLLocationCoordinate2D)>) {
-        var swMarks: Array<(CLLocationCoordinate2D)> = []
-        var neMarks: Array<(CLLocationCoordinate2D)> = []
-        
-        for (index, box) in boundingBoxes.enumerated() {
-            let (SW, NE) = box;
-            swMarks.append(SW);
-            neMarks.append(NE);
-            
-            
-//            let annotationSW = MGLPointAnnotation()
-//            annotationSW.coordinate = CLLocationCoordinate2D(latitude: SW.latitude, longitude: SW.longitude)
-//            annotationSW.title = "\(index) SW"
-//            mapView.addAnnotation(annotationSW)
-//
-//            let annotationNE = MGLPointAnnotation()
-//            annotationNE.coordinate = CLLocationCoordinate2D(latitude: NE.latitude, longitude: NE.longitude)
-//            annotationNE.title = "\(index) NE"
-//            mapView.addAnnotation(annotationNE)
-        
-            
-            let boxLine = MGLPolyline(coordinates: [SW, NE], count: 2)
-            self.mapView.addAnnotation(boxLine)
-        }
-        
-        
-        
-//        let swLine = MGLPolyline(coordinates: swMarks, count: UInt(swMarks.count))
-//        let neLine = MGLPolyline(coordinates: neMarks, count: UInt(neMarks.count))
-//        self.mapView.addAnnotation(neLine)
-//        self.mapView.addAnnotation(swLine)
+        startOfflinePackDownload(boxes: offlineBoxes)
     }
 
     func mapView(_ mapView: MGLMapView, didUpdate userLocation: MGLUserLocation?) {
         print("Roland: Updated Location");
         if(lastLocation == nil) { mapView.setCenter((userLocation?.coordinate)!,
-                                                    zoomLevel: 10,
+                                                    zoomLevel: 12,
                                                     animated: false) }
         lastLocation = userLocation!;
-//        mapView.userTrackingMode = MGLUserTrackingMode.followWithCourse
+        
+        if(KEEP_TRACK_OF_LOCATION) { mapView.userTrackingMode = MGLUserTrackingMode.followWithCourse; }
     }
     
+    /*
+     As soon as the map is loaded, we can start fetching the resources. The gpxService is configured
+     to instantly load it's gpx file and give an async notification. This means we can only instantiate it here after the mapview
+     is finished loading.
+     */
     func mapViewDidFinishLoadingMap(_ mapView: MGLMapView) {
         print("Roland: Finished Loading");
-        /*
-         As soon as the map is loaded, we can start fetching the resources. The gpxService is now configured
-         to instantly load it's gpx file and give an async notification. This means we can only instantiate it here
-        */
+        
         gpxService = GpxService.sharedInstance;
         mapView.userTrackingMode = MGLUserTrackingMode.followWithCourse
     }
     
-    func startOfflinePackDownload(bounds: (CLLocationCoordinate2D, CLLocationCoordinate2D), resolution: String, title: String) {
-        /*
-            Create a region that includes the current viewport and any tiles needed to view it when zoomed further in.
-            Because tile count grows exponentially with the maximum zoom level, you should be conservative with your `toZoomLevel` setting.
-         */
-        let fromZoomLevel: Double = resolution == "HIRES" ? 8 : 8;
-        let toZoomLevel: Double = resolution == "HIRES" ? 14 : 10;
-        let (SW, NE) = bounds;
-        let bounds = MGLCoordinateBounds.init(sw: SW, ne: NE);
-        do {
-            let region = MGLTilePyramidOfflineRegion(styleURL: mapView.styleURL,
-                                                     bounds: bounds,
-                                                     fromZoomLevel: fromZoomLevel,
-                                                     toZoomLevel: toZoomLevel)
-            let storageObject = [title: "\(SW), \(NE)"]
-            let storageArchive = try NSKeyedArchiver.archivedData(withRootObject: storageObject,
-                                                                  requiringSecureCoding: false)
-            MGLOfflineStorage.shared.addPack(for: region,
-                                             withContext: storageArchive) {
-                                                (pack, error) in guard error == nil else {
-                                                    // The pack couldn’t be created for some reason.
-                                                    print("Error: \(error?.localizedDescription ?? "unknown error")")
-                                                    return
-                                                }
-                                                pack!.resume()
+    /*
+     Create a region that includes the current viewport and any tiles needed to view it when zoomed further in.
+     Because tile count grows exponentially with the maximum zoom level, you should be conservative with your `toZoomLevel` setting.
+     
+     This function takes some bounds which are in the form of a (SW, NE) tuple. For debugging, keeping full bounding boxes for everything
+     up until this point is nicer because we can draw the bounding boxes to see how much they overlap and fine tune the results a lot better.
+     While a bit less performant, this should work just fine :)
+     */
+    func startOfflinePackDownload(boxes: Array<(Int, CLLocationCoordinate2D, CLLocationCoordinate2D)>) {
+        for (index, SW, NE) in boxes {
+            let fromZoomLevel: Double = 8;
+            let toZoomLevel: Double = 10; // This should become 14 again
+            let bounds = MGLCoordinateBounds.init(sw: SW, ne: NE);
+            do {
+                let storageObject = [index: "\(SW), \(NE)"]
+                let region = MGLTilePyramidOfflineRegion(styleURL: mapView.styleURL,
+                                                         bounds: bounds,
+                                                         fromZoomLevel: fromZoomLevel,
+                                                         toZoomLevel: toZoomLevel)
+                let storageArchive = try NSKeyedArchiver.archivedData(withRootObject: storageObject,
+                                                                      requiringSecureCoding: false)
+                
+                MGLOfflineStorage.shared.addPack(for: region,
+                                                 withContext: storageArchive) {
+                                                    (pack, error) in guard error == nil else { return print("Error: \(error?.localizedDescription ?? "unknown error")") }
+                                                    pack!.resume()
+                }
             }
-        }
-        catch {
-            print(error)
+            catch {
+                print(error)
+            }
         }
     }
     
@@ -192,6 +162,7 @@ class LocationService: NSObject, MGLMapViewDelegate {
         let download = notification.object as? MGLOfflinePack;
         if (download == nil) {return};
         
+        print("DownloadContext: \(download!.context)");
         let progress = download!.progress // as we check if pack is nil, we can now safely assume we have it here.
         let completed = progress.countOfResourcesCompleted
         let total = progress.countOfResourcesExpected
