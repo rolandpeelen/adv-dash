@@ -5,11 +5,11 @@ Done
 - Load GPX from file
 
 Todo
-- Based on some parameters, create a boundary around that line and download everything within as an offline map -- IE. implement http://188.166.7.120:5000/ algorithm to draw the bounding boxes
+- ~Based on some parameters, create a boundary around that line and download everything within as an offline map -- IE. implement http://188.166.7.120:5000/ algorithm to draw the bounding boxes~ -- This is no longer necessary. The exported GPX files contain so many points that the other algorithm won't really work. 
 - Connect to AWS bucket to select GPX file
 
 Todo Back-end
-- Create tiny back-end with user management
+- Create tiny back-end with user management for easy selection of GPX files
 - Have back-end be able to upload GPX files
 
 To use:
