@@ -20,8 +20,11 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>MGLMapboxAccessToken</key>
+	<key>MGLMapboxAccessToken_proper</key>
 	<string>pk.eyJ1Ijoicm9sYW5kcGVlbGVuIiwiYSI6ImNqbWY5ZXEyczF0ZzgzcXB0Ym45dmNpcnMifQ.4QUZb0fE-jm1wsILwQE34Q
+</string>
+	<key>MGLMapboxAccessToken</key>
+	<string>pk.eyJ1IjoiZW5wbGFuZWRyb2xlIiwiYSI6ImNqczBzOTV4bjFoY2Y0NHBrdml0cGwwZTUifQ.gm3qdEo5oop7KaGaunfRAQ
 </string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Shows your location on the map and helps improve OpenStreetMap.
@@ -48,4 +51,3 @@
 	</array>
 </dict>
 </plist>
-
