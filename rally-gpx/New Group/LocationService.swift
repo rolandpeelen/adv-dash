@@ -20,7 +20,7 @@ class LocationService: NSObject, MGLMapViewDelegate {
     let VISUAL_DEBUGGING:Bool = true;
     let OFFLINE_MODE:Bool = true;
     let MINIMAL_DISTANCE:Double = 5000;
-    let DOWNLOAD_OFFSET: Double = 5000;
+    let DOWNLOAD_OFFSET: Double = 1000;
     
     /*
      PUBLIC
@@ -36,6 +36,7 @@ class LocationService: NSObject, MGLMapViewDelegate {
     /*
      PRIVATE
      */
+    private var downloadStatus: Array<(String, UInt64, UInt64)> = [];
     private var progressView: UIProgressView!
     private var lastLocation: MGLUserLocation?;
     private var gpxService: GpxService!;
@@ -72,7 +73,7 @@ class LocationService: NSObject, MGLMapViewDelegate {
         superView.addSubview(mapView);
         mapView.delegate = self;
         
-        MGLOfflineStorage.shared.reloadPacks()
+//        MGLOfflineStorage.shared.reloadPacks()
         
         initialized = true;
         print("Roland: Mapview Initiated");
@@ -157,37 +158,42 @@ class LocationService: NSObject, MGLMapViewDelegate {
             }
         }
     }
-    
+
+    /*
+     The offlinePacks all need to be tracked together otherwise we can't realistically show progress. Ass such, we're stringifying them and appending them
+     to the array
+     */
     @objc func offlinePackProgressDidChange(notification: NSNotification) {
         let download = notification.object as? MGLOfflinePack;
         if (download == nil) {return};
-        
-        print("DownloadContext: \(download!.context)");
-        let progress = download!.progress // as we check if pack is nil, we can now safely assume we have it here.
+        let progress = download!.progress
         let completed = progress.countOfResourcesCompleted
         let total = progress.countOfResourcesExpected
-        let progressPercentile = Float(completed) / Float(total)
         
-        // Setup the progress bar.
+        let stringifiedRegion = "\(download!.region)"
+        let newContext = (stringifiedRegion, total, completed);
+        downloadStatus = downloadStatus.filter { $0.0 != stringifiedRegion };
+        downloadStatus.append(newContext)
+        
+        updateProgress();
+    }
+    
+    func updateProgress() {
         if (progressView == nil) {
             progressView = UIProgressView(progressViewStyle: .default)
             let frame = superView.bounds.size
             progressView.frame = CGRect(x: frame.width / 4, y: frame.height * 0.75, width: frame.width / 2, height: 10)
             superView.addSubview(progressView)
         }
+        let total: UInt64 = downloadStatus.reduce(0) {result, context in result + context.1};
+        let completed: UInt64 = downloadStatus.reduce(0) {result, context in result + context.2};
+        let progressPercentile = Float(completed) / Float(total);
         progressView.progress = progressPercentile
-        
-        // If this pack has finished, print its size and resource count.
+        print("Total: \(total), Completed: \(completed)");
         if (completed == total) {
-            let byteCount = ByteCountFormatter.string(
-                fromByteCount: Int64(download!.progress.countOfBytesCompleted),
-                countStyle: ByteCountFormatter.CountStyle.memory)
-            
             progressView.removeFromSuperview()
-            return downloadCompleted(byteCount: byteCount, completed: completed);
+            return print("Downloading Complete")
         }
-        
-        downloadProgress(completed: completed, total: total, percentile: progressPercentile);
     }
     
     
@@ -203,8 +209,6 @@ class LocationService: NSObject, MGLMapViewDelegate {
         but ain't nobody got time for that.
      - The downloadCompleted will be seen as the progressbar dissappearing;
      */
-    func downloadCompleted(byteCount: String, completed: UInt64) { print("Offline pack completed: \(byteCount), \(completed) resources") };
-    func downloadProgress(completed: UInt64, total: UInt64, percentile: Float) { print("Offline pack has \(completed) of \(total) resources — \(percentile * 100)%.") };
     @objc func offlinePackDidReceiveError(notification: NSNotification) { print("Some offline shit received an error") }
     @objc func offlinePackDidReceiveMaximumAllowedMapboxTiles(notification: NSNotification) { print("Maximum tiles reached fam") }
     @objc func mapView(_ mapView: MGLMapView, strokeColorForShapeAnnotation annotation: MGLShape) -> UIColor { return UIColor.red }

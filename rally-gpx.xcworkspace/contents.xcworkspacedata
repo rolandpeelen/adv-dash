@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:/Users/Roland/Git/RallyDash/rally-gpx/rally-gpx/Data.Extension.Swift">
+   </FileRef>
+   <FileRef
       location = "group:rally-gpx.xcodeproj">
    </FileRef>
    <FileRef
